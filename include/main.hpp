@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <random>
 #include <ctime>
+#include <complex>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>

@@ -5,7 +5,7 @@
 // definitions for globals declared in main.hpp
 GLfloat cameraAnglePhi = 0.f; // in degrees
 GLfloat cameraAngleTheta = 90.f; // in degrees
-GLfloat camedaDistance = 13.f;
+GLfloat camedaDistance = 25.f;
 
 const GLfloat CAMERA_ROTATION_SPEED = 0.3f;
 const GLfloat CAMERA_ZOOM_SPEED = 0.05f;
@@ -13,11 +13,12 @@ const GLfloat CAMERA_ZOOM_SPEED = 0.05f;
 int main()
 {
     // glfw: initialize and configure
+    std::cout << "Initializing GLFW..." << std::endl;
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
+    std::cout << "GLFW initialized properly" << std::endl;
 
     // glfw window creation
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Lorem Ipsum", NULL, NULL);
@@ -38,10 +39,16 @@ int main()
     }
 
     // build and compile the shader program
+    std::cout << "Initializing shader program..." << std::endl;
     Shader shaderProgram("../assets/shaders/vertex.vs", "../assets/shaders/fragment.fs"); // you can name your shader files however you like
+    std::cout << "Shader program initialized" << std::endl;
 
-    PointCloud pointCloud(shaderProgram, 15000);
+    const int n = 3;
+    const int l = 0;
+    const int m = 0;
+    PointCloud pointCloud(shaderProgram, 100000*10^n, n, l, m);
 
+    pointCloud.calculateAllProbabilities();
 
     double lastTime = glfwGetTime();
     int frames = 0;
@@ -100,7 +107,7 @@ int main()
         glfwPollEvents();
     }
  
-
+    std::cout << "Exiting..." << std::endl;
     glfwTerminate();
     return 0;
 }
@@ -115,40 +122,38 @@ void processInput(GLFWwindow *window)
         cameraAngleTheta -= CAMERA_ROTATION_SPEED*glfwGetTime();
         if (cameraAngleTheta <= 0)
             cameraAngleTheta = 0.1f;
-        std::cout << "Camera angle Y: " << cameraAngleTheta << std::endl;
+        //std::cout << "Camera angle Y: " << cameraAngleTheta << std::endl;
     }
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
     {
         cameraAngleTheta += CAMERA_ROTATION_SPEED*glfwGetTime();
         if (cameraAngleTheta >= 180)
             cameraAngleTheta = 179.9f;
-        std::cout << "Camera angle Y: " << cameraAngleTheta << std::endl;
+        //std::cout << "Camera angle Y: " << cameraAngleTheta << std::endl;
     }
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
     {
         cameraAnglePhi -= CAMERA_ROTATION_SPEED*glfwGetTime();
         if (cameraAnglePhi <= 0)
             cameraAnglePhi += 360;
-        std::cout << "Camera angle X: " << cameraAnglePhi << std::endl;
+        //std::cout << "Camera angle X: " << cameraAnglePhi << std::endl;
     }
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
     {
         cameraAnglePhi += CAMERA_ROTATION_SPEED*glfwGetTime();
         if (cameraAnglePhi >= 360)
             cameraAnglePhi -= 360;
-        std::cout << "Camera angle X: " << cameraAnglePhi << std::endl;
+        //std::cout << "Camera angle X: " << cameraAnglePhi << std::endl;
     }
     if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS){
         camedaDistance -= CAMERA_ZOOM_SPEED*glfwGetTime();
         if (camedaDistance <= 10.f)
             camedaDistance = 10.f;
-        std::cout << "Camera distance: " << camedaDistance << std::endl;
+        //std::cout << "Camera distance: " << camedaDistance << std::endl;
     }
     if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS){
         camedaDistance += CAMERA_ZOOM_SPEED*glfwGetTime();
-        if (camedaDistance >= 50.0f)
-            camedaDistance = 50.0f;
-        std::cout << "Camera distance: " << camedaDistance << std::endl;
+        //std::cout << "Camera distance: " << camedaDistance << std::endl;
     }
 }
 

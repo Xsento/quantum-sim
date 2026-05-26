@@ -7,7 +7,7 @@ find_package(OpenGL REQUIRED)
 find_package(Threads REQUIRED)
 if(WIN32)
     set(GLFW_LIB "${CMAKE_CURRENT_SOURCE_DIR}/external/glfw3-mingw/libglfw3.a")
-    set(PLATFORM_LIBS OpenGL::GL Threads::Threads)
+    set(PLATFORM_LIBS OpenGL::GL Threads::Threads winmm)
     add_subdirectory(external/glm)
 
     file(GLOB_RECURSE SOURCES "src/*.cpp" "external/glad/*.c")

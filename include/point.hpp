@@ -4,7 +4,7 @@
 class PointCloud {
     struct Point {
         glm::vec3 position;     // [x, y, z]
-        float probability;       // probability
+        double probability;       // probability
     };
     std::vector<Point> points;
 
@@ -15,11 +15,13 @@ class PointCloud {
 
     Shader shaderProgram;
     unsigned int numPoints;
+
+    int n, l, m;
     
 public:
-    PointCloud(Shader& shaderProgram, unsigned int numPoints);
+    PointCloud(Shader& shaderProgram, unsigned int numPoints, int n, int l, int m);
     
-    void calculateColor(Point& point);  // for multithreading purposes
-    void calculateAllColors();
+    void calculateProbability(int n, int l, int m, Point& point);  // for multithreading purposes
+    void calculateAllProbabilities();
     void draw(glm::mat4 model);
 };
