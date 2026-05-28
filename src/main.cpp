@@ -47,16 +47,21 @@ int main()
     //glEnable(GL_BLEND);
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
 
+    // SIMULATION PARAMETERS
+    // --------------------------------------------------------------------------------
     const int n = 3;
     const int l = 1;
     const int m = 0;
     double start = glfwGetTime();
-    PointCloud pointCloud(shaderProgram, 1000000, n, l, m);
+    std::cout << "Generating point array... " << std::endl;
+    PointCloud pointCloud(shaderProgram, 5000000, n, l, m);
     std::cout << "Point generation time: " << glfwGetTime()-start << "s" << std::endl;
 
     start = glfwGetTime();
+    std::cout << "Calculating probabilities... " << std::endl;
     pointCloud.calculateAllProbabilities();
     std::cout << "Probability calculation time: " << glfwGetTime()-start << "s" << std::endl;
+    // --------------------------------------------------------------------------------
 
     double lastTime = glfwGetTime();
     int frames = 0;
@@ -105,8 +110,13 @@ int main()
             glm::vec3(0.0f, 1.0f, 0.0f)
         );
 
-        projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        shaderProgram.setMat4("view", view);
+        // prevent distortion by setting the aspect ratio based on the framebuffer size, not the window size
+        int currentWidth = SCR_WIDTH;
+        int currentHeight = SCR_HEIGHT;
+        glfwGetFramebufferSize(window, &currentWidth, &currentHeight);
+        projection = glm::perspective(glm::radians(45.0f), static_cast<float>(currentWidth) / static_cast<float>(currentHeight), 0.1f, 100.0f);
+        
+        shaderProgram.setMat4("view", view);        
         shaderProgram.setMat4("projection", projection);
 
         pointCloud.draw(model);
@@ -115,7 +125,7 @@ int main()
         glfwPollEvents();
     }
  
-    std::cout << "Exiting..." << std::endl;
+    std::cout << "Window closed. Exiting..." << std::endl;
     glfwTerminate();
     return 0;
 }

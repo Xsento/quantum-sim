@@ -8,6 +8,9 @@
 #include <random>
 #include <ctime>
 #include <complex>
+#include <thread>
+#include <functional>
+#include <vector>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -16,8 +19,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 // settings
-constexpr unsigned int SCR_WIDTH = 800;
-constexpr unsigned int SCR_HEIGHT = 600;
+constexpr int SCR_WIDTH = 800;
+constexpr int SCR_HEIGHT = 600;
 
 // camera parameters (defined in one .cpp file)
 extern GLfloat cameraAnglePhi; // in degrees

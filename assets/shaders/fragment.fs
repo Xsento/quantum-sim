@@ -4,7 +4,11 @@ out vec4 FragColor;
 uniform vec3 colorMin;
 uniform vec3 colorMax;
 uniform vec3 white;
-uniform float normProb;
+
+uniform float prob;
+uniform float maxProb;
+
+float normProb = prob/maxProb;
 
 void main()
 {
