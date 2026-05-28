@@ -21,7 +21,8 @@ int main()
     std::cout << "GLFW initialized properly" << std::endl;
 
     // glfw window creation
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Lorem Ipsum", NULL, NULL);
+    glfwWindowHint(GLFW_MAXIMIZED , GL_TRUE);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Please wait...", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -44,12 +45,16 @@ int main()
     std::cout << "Shader program initialized" << std::endl;
 
     //alpha blend
-    //glEnable(GL_BLEND);
-    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+
+    // depth test and point size
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_PROGRAM_POINT_SIZE);
 
     // SIMULATION PARAMETERS
     // --------------------------------------------------------------------------------
-    const int n = 3;
+    const int n = 2;
     const int l = 1;
     const int m = 0;
     double start = glfwGetTime();

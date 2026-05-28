@@ -2,7 +2,10 @@
 
 // OPENGL RENDERING
 // --------------------------------------------------------------------------------
-void PointCloud::setupBuffers() {
+// definitions for static members declared in PointCloud
+GLuint PointCloud::VBO = 0;
+GLuint PointCloud::VAO = 0;
+/*void PointCloud::setupBuffers() {
     // octahedron
     float vertices[]{
         0.0f, -0.5f, 0.0f,      // 0
@@ -48,6 +51,23 @@ void PointCloud::setupBuffers() {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 }
+*/
+
+void PointCloud::setupBuffers() {
+    // point
+    float vertices[]{
+        0.0f, 0.0f, 0.0f,      // 0
+    };
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+}
 
 void PointCloud::draw(glm::mat4 model) {
     std::mt19937 rng(time(0));
@@ -59,19 +79,15 @@ void PointCloud::draw(glm::mat4 model) {
     shaderProgram.setVec3("white", COLOR_WHITE);
     glBindVertexArray(VAO);
 
+    shaderProgram.setFloat("maxProb", maxProb);
     for (auto& pointSubvector : pointMasterVector) {
         for (auto& point : pointSubvector) {
-            //if (point.probability <= 0) continue;
-
             model = glm::mat4(1.0f);
             model = glm::translate(model, point.position);
-            model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
             shaderProgram.setMat4("model", model);
-
             shaderProgram.setFloat("prob", point.probability);
-            shaderProgram.setFloat("maxProb", maxProb);
 
-            glDrawArrays(GL_TRIANGLES, 0, 24);    
+            glDrawArrays(GL_POINTS, 0, 1);    
         }
     }
 }
@@ -80,10 +96,6 @@ void PointCloud::draw(glm::mat4 model) {
 
 // PHYSICS CALCULATIONS
 // --------------------------------------------------------------------------------
-// definitions for static members declared in PointCloud
-GLuint PointCloud::VBO = 0;
-GLuint PointCloud::VAO = 0;
-
 // Bohr radius is set to 1 for simplicity and skipped in the calculations
 double normalizedRadialFunction(int n, int l, double x){
     switch (n){
@@ -252,5 +264,7 @@ void PointCloud::calculateAllProbabilities() {;
         pointsRejected += r;
     }
 
-    std::cout << "Starting points: " << startingPoints << " Points drawn: " << startingPoints - pointsRejected  << " Rejection rate: " << 100.f * static_cast<float>(pointsRejected) / startingPoints << "%" << std::endl;
+    numPoints -= pointsRejected;
+
+    std::cout << "Starting points: " << startingPoints << " Points drawn: " << numPoints << " Rejection rate: " << 100.f * static_cast<float>(pointsRejected) / startingPoints << "%" << std::endl;
 }
