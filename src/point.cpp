@@ -75,20 +75,34 @@ void PointCloud::calculateProbability(int n, int l, int m, Point& point) {
 void PointCloud::calculateAllProbabilities(){
     std::mt19937 rng(time(0));
 
-    double maxProb = 0.0;
+    maxProb = 0.0;
 
     for (auto& point : points){
         calculateProbability(n,l,m,point);
-        //std::cout << point.position.x << " " << point.position.y << " " << point.position.z << "|" << point.probability << std::endl;
+        //std::cout << point.position.x << " " << point.position.y << " " << point.position.z << "|" << point.probability << std::endl; 
         maxProb = std::max(maxProb,point.probability);
     }
 
     std::uniform_real_distribution<double> dist(0.0, maxProb);
 
+    unsigned int pointsRejected = 0;
+
     for (auto& point : points){
         double target = dist(rng);
-        if (point.probability < target) point.probability = -1;
+        if (point.probability < pow(target,1.2)) {
+            point.probability = -1;
+            pointsRejected++;
+        }
     }
+
+    std::cout << "Starting points: " << points.size() << " Points drawn: " << points.size()-pointsRejected << " Rejection rate: " << 100.f*static_cast<float>(pointsRejected)/points.size() << "%" << std::endl;
+
+    //unsigned int i = 0;
+    //while (i < points.size()){
+    //    double target = dist(rng);
+    //    if (points[i].probability < target) points.erase(points.begin()+i,points.begin()+1);
+    //    i++;
+    //}
 }
 
 void PointCloud::setupBuffers() {
@@ -141,17 +155,22 @@ void PointCloud::draw(glm::mat4 model) {
     std::mt19937 rng(time(0));
     std::uniform_real_distribution<float> dist(0.f, 1.f);
 
+    shaderProgram.use();
+    shaderProgram.setVec3("colorMin", COLOR_MIN);
+    shaderProgram.setVec3("colorMax", COLOR_MAX);
+    shaderProgram.setVec3("white", COLOR_WHITE);
+    glBindVertexArray(VAO);
+
     for (auto& point : points) {
         if (point.probability <= 0) continue;
-        shaderProgram.use();
-        shaderProgram.setVec3("color", POINT_COLOR);
         
         model = glm::mat4(1.0f);
         model = glm::translate(model, point.position);
         model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
         shaderProgram.setMat4("model", model);
 
-        glBindVertexArray(VAO);
+        shaderProgram.setFloat("normProb", static_cast<float>(point.probability/maxProb));
+
         glDrawArrays(GL_TRIANGLES, 0, 24);    
     }
 
@@ -159,7 +178,7 @@ void PointCloud::draw(glm::mat4 model) {
 
 PointCloud::PointCloud(Shader& shaderProgram, unsigned int numPoints, int n, int l, int m) : shaderProgram(shaderProgram), numPoints(numPoints), n(n), l(l), m(m) {
     std::mt19937 rng(time(0));
-    std::uniform_real_distribution<double> dist(-(6.0*n), (6.0*n));
+    std::uniform_real_distribution<double> dist(-25.0, 25.0);
 
     while (points.size() < numPoints) {
         Point point;

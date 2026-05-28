@@ -40,15 +40,23 @@ int main()
 
     // build and compile the shader program
     std::cout << "Initializing shader program..." << std::endl;
-    Shader shaderProgram("../assets/shaders/vertex.vs", "../assets/shaders/fragment.fs"); // you can name your shader files however you like
+    Shader shaderProgram("../assets/shaders/vertex.vs", "../assets/shaders/fragment.fs");
     std::cout << "Shader program initialized" << std::endl;
 
-    const int n = 3;
-    const int l = 0;
-    const int m = 0;
-    PointCloud pointCloud(shaderProgram, 100000*10^n, n, l, m);
+    //alpha blend
+    //glEnable(GL_BLEND);
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
 
+    const int n = 3;
+    const int l = 1;
+    const int m = 0;
+    double start = glfwGetTime();
+    PointCloud pointCloud(shaderProgram, 1000000, n, l, m);
+    std::cout << "Point generation time: " << glfwGetTime()-start << "s" << std::endl;
+
+    start = glfwGetTime();
     pointCloud.calculateAllProbabilities();
+    std::cout << "Probability calculation time: " << glfwGetTime()-start << "s" << std::endl;
 
     double lastTime = glfwGetTime();
     int frames = 0;
