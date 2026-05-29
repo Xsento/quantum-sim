@@ -7,8 +7,8 @@ GLfloat cameraAnglePhi = 0.f; // in degrees
 GLfloat cameraAngleTheta = 90.f; // in degrees
 GLfloat camedaDistance = 25.f;
 
-const GLfloat CAMERA_ROTATION_SPEED = 0.3f;
-const GLfloat CAMERA_ZOOM_SPEED = 0.05f;
+const GLfloat CAMERA_ROTATION_SPEED = 9000000.f;
+const GLfloat CAMERA_ZOOM_SPEED = 3000000.f;
 
 int main()
 {
@@ -54,12 +54,12 @@ int main()
 
     // SIMULATION PARAMETERS
     // --------------------------------------------------------------------------------
-    const int n = 2;
-    const int l = 1;
+    const int n = 3;
+    const int l = 2;
     const int m = 0;
     double start = glfwGetTime();
     std::cout << "Generating point array... " << std::endl;
-    PointCloud pointCloud(shaderProgram, 5000000, n, l, m);
+    PointCloud pointCloud(shaderProgram, 6000000, n, l, m);
     std::cout << "Point generation time: " << glfwGetTime()-start << "s" << std::endl;
 
     start = glfwGetTime();
@@ -138,44 +138,45 @@ int main()
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 void processInput(GLFWwindow *window)
 {
+    auto lastTime = glfwGetTime();
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
     {
-        cameraAngleTheta -= CAMERA_ROTATION_SPEED*glfwGetTime();
+        cameraAngleTheta -= CAMERA_ROTATION_SPEED*(glfwGetTime() - lastTime);
         if (cameraAngleTheta <= 0)
             cameraAngleTheta = 0.1f;
         //std::cout << "Camera angle Y: " << cameraAngleTheta << std::endl;
     }
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
     {
-        cameraAngleTheta += CAMERA_ROTATION_SPEED*glfwGetTime();
+        cameraAngleTheta += CAMERA_ROTATION_SPEED*(glfwGetTime() - lastTime);
         if (cameraAngleTheta >= 180)
             cameraAngleTheta = 179.9f;
         //std::cout << "Camera angle Y: " << cameraAngleTheta << std::endl;
     }
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
     {
-        cameraAnglePhi -= CAMERA_ROTATION_SPEED*glfwGetTime();
+        cameraAnglePhi -= CAMERA_ROTATION_SPEED*(glfwGetTime() - lastTime);
         if (cameraAnglePhi <= 0)
             cameraAnglePhi += 360;
         //std::cout << "Camera angle X: " << cameraAnglePhi << std::endl;
     }
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
     {
-        cameraAnglePhi += CAMERA_ROTATION_SPEED*glfwGetTime();
+        cameraAnglePhi += CAMERA_ROTATION_SPEED*(glfwGetTime() - lastTime);
         if (cameraAnglePhi >= 360)
             cameraAnglePhi -= 360;
         //std::cout << "Camera angle X: " << cameraAnglePhi << std::endl;
     }
     if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS){
-        camedaDistance -= CAMERA_ZOOM_SPEED*glfwGetTime();
+        camedaDistance -= CAMERA_ZOOM_SPEED*(glfwGetTime() - lastTime);
         if (camedaDistance <= 10.f)
             camedaDistance = 10.f;
         //std::cout << "Camera distance: " << camedaDistance << std::endl;
     }
     if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS){
-        camedaDistance += CAMERA_ZOOM_SPEED*glfwGetTime();
+        camedaDistance += CAMERA_ZOOM_SPEED*(glfwGetTime() - lastTime);
         //std::cout << "Camera distance: " << camedaDistance << std::endl;
     }
 }
