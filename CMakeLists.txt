@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.28.3)
 
-project(lorem-ipsum)
+project(quantum-sim)
 set(CMAKE_CXX_STANDARD 20)
 
 find_package(OpenGL REQUIRED)
@@ -11,7 +11,7 @@ if(WIN32)
     add_subdirectory(external/glm)
 
     file(GLOB_RECURSE SOURCES "src/*.cpp" "external/glad/*.c")
-    add_executable(lorem-ipsum ${SOURCES})
+    add_executable(quantum-sim ${SOURCES})
 
     target_include_directories("${CMAKE_PROJECT_NAME}" PRIVATE "include/" "src/" "external/")
     target_link_libraries("${CMAKE_PROJECT_NAME}" glm "${GLFW_LIB}" ${PLATFORM_LIBS})
@@ -22,7 +22,7 @@ elseif(UNIX)
     add_subdirectory(external/glm)
 
     file(GLOB_RECURSE SOURCES "src/*.cpp" "external/glad/*.c")
-    add_executable(lorem-ipsum ${SOURCES})
+    add_executable(quantum-sim ${SOURCES})
 
     target_include_directories("${CMAKE_PROJECT_NAME}" PRIVATE "include/" "src/" "external/")
     target_link_libraries("${CMAKE_PROJECT_NAME}" glm glfw ${PLATFORM_LIBS})
