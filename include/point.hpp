@@ -15,7 +15,6 @@ class PointCloud {
     static constexpr glm::vec3 COLOR_WHITE = glm::vec3(1.f, 1.f, 1.f);      // white
 
     static GLuint VBO, VAO;
-    static void setupBuffers();     // setup VBO and VAO
 
     double maxProb = 0.0;
 
@@ -25,6 +24,8 @@ class PointCloud {
     int pointsPerThread;
 
     int n, l, m;
+
+    double range;
     
 public:
     PointCloud(Shader& shaderProgram, unsigned int numPoints, int n, int l, int m);
@@ -33,7 +34,7 @@ public:
     
     void calculateAllProbabilities();                                                   // calculates probabilities for all points
     
-    void draw(glm::mat4 model);                                                         // calculates model matrices and draws each point
+    void draw();                                                                         // calculates model matrices and draws each point
     
     void generatePointVector(double range, unsigned int seed,                      
          unsigned int amount, int threadId);                                            // generates a vector of randomly generated points and adds it to the point vectors vector
@@ -42,4 +43,6 @@ public:
     
     void filterWorker(int threadId, double globalMaxProb,                               // filters a subset of points, rejecting points with probability lower than a random 
          unsigned int& outRejectedCount, unsigned int seed);                            // threshold based on the global maximum probability, and returns the count of rejected points
+
+    void setupBuffers();                                                                // sets up the OpenGL buffers for rendering points
 };

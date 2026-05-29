@@ -7,8 +7,8 @@ GLfloat cameraAnglePhi = 0.f; // in degrees
 GLfloat cameraAngleTheta = 90.f; // in degrees
 GLfloat camedaDistance = 25.f;
 
-const GLfloat CAMERA_ROTATION_SPEED = 9000000.f;
-const GLfloat CAMERA_ZOOM_SPEED = 3000000.f;
+const GLfloat CAMERA_ROTATION_SPEED = 1800000.f;
+const GLfloat CAMERA_ZOOM_SPEED = 300000.f;
 
 int main()
 {
@@ -21,7 +21,7 @@ int main()
     std::cout << "GLFW initialized properly" << std::endl;
 
     // glfw window creation
-    glfwWindowHint(GLFW_MAXIMIZED , GL_TRUE);
+    glfwWindowHint(GLFW_MAXIMIZED , GL_TRUE);   // doesnt work on linux for some reason
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Please wait...", NULL, NULL);
     if (window == NULL)
     {
@@ -52,6 +52,8 @@ int main()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_PROGRAM_POINT_SIZE);
 
+    shaderProgram.use();
+
     // SIMULATION PARAMETERS
     // --------------------------------------------------------------------------------
     const int n = 3;
@@ -59,7 +61,7 @@ int main()
     const int m = 0;
     double start = glfwGetTime();
     std::cout << "Generating point array... " << std::endl;
-    PointCloud pointCloud(shaderProgram, 6000000, n, l, m);
+    PointCloud pointCloud(shaderProgram, 100000000, n, l, m);
     std::cout << "Point generation time: " << glfwGetTime()-start << "s" << std::endl;
 
     start = glfwGetTime();
@@ -68,8 +70,18 @@ int main()
     std::cout << "Probability calculation time: " << glfwGetTime()-start << "s" << std::endl;
     // --------------------------------------------------------------------------------
 
+    pointCloud.setupBuffers();
+
     double lastTime = glfwGetTime();
     int frames = 0;
+
+    // create transformations
+    glm::mat4 model         = glm::mat4(1.0f);
+    glm::mat4 view          = glm::mat4(1.0f);
+    glm::mat4 projection    = glm::mat4(1.0f);
+
+    model = glm::scale(model, glm::vec3(15.f));     // scale the model to fit in the view
+    shaderProgram.setMat4("model", model);          // model matrix wont change
 
     // render loop
     // -----------
@@ -89,14 +101,6 @@ int main()
         // render
         glClearColor(0.f, 0.f, 0.f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        shaderProgram.use();
-
-        // create transformations
-        glm::mat4 model         = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-        glm::mat4 view          = glm::mat4(1.0f);
-        glm::mat4 projection    = glm::mat4(1.0f);
-        //view  = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
         
         GLfloat thetaRad = glm::radians(cameraAngleTheta);
         GLfloat phiRad = glm::radians(cameraAnglePhi);
@@ -124,7 +128,7 @@ int main()
         shaderProgram.setMat4("view", view);        
         shaderProgram.setMat4("projection", projection);
 
-        pointCloud.draw(model);
+        pointCloud.draw();
 
         glfwSwapBuffers(window);
         glfwPollEvents();

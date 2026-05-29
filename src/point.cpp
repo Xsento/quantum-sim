@@ -2,100 +2,55 @@
 
 // OPENGL RENDERING
 // --------------------------------------------------------------------------------
+
 // definitions for static members declared in PointCloud
 GLuint PointCloud::VBO = 0;
 GLuint PointCloud::VAO = 0;
-/*void PointCloud::setupBuffers() {
-    // octahedron
-    float vertices[]{
-        0.0f, -0.5f, 0.0f,      // 0
-        0.0f, 0.0f, 0.5f,       // 1
-        -0.5f, 0.0f, 0.0f,      // 2
 
-        -0.5f, 0.0f, 0.0f,      // 2
-        0.0f, 0.0f, 0.5f,       // 1
-        0.0f, 0.5f, 0.0f,       // 3
-        
-        0.0f, 0.5f, 0.0f,       // 3
-        0.0f, 0.0f, 0.5f,       // 1
-        0.5f, 0.0f, 0.0f,       // 5
-
-        0.5f, 0.0f, 0.0f,       // 5
-        0.0f, 0.0f, 0.5f,       // 1
-        0.0f, -0.5f, 0.0f,      // 0
-
-
-        0.0f, -0.5f, 0.0f,      // 0
-        0.0f, 0.0f, -0.5f,      // 4
-        -0.5f, 0.0f, 0.0f,      // 2
-
-        -0.5f, 0.0f, 0.0f,      // 2
-        0.0f, 0.0f, -0.5f,      // 4
-        0.0f, 0.5f, 0.0f,       // 3
-        
-        0.0f, 0.5f, 0.0f,       // 3
-        0.0f, 0.0f, -0.5f,      // 4
-        0.5f, 0.0f, 0.0f,       // 5
-
-        0.5f, 0.0f, 0.0f,       // 5
-        0.0f, 0.0f, -0.5f,      // 4
-        0.0f, -0.5f, 0.0f,      // 0
-    };
-
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-}
-*/
-
+// i love how well it works
 void PointCloud::setupBuffers() {
     // point
-    float vertices[]{
-        0.0f, 0.0f, 0.0f,      // 0
-    };
+    float* vertices = new float[numPoints * 4];
+
+    // i dont think we need multithreading here, there wont be many points left after the rejection sampling and it would be a nightmare to set up
+    int i = 0;
+    for (auto& pointSubvector : pointMasterVector) {
+        for (auto& point : pointSubvector) {
+            vertices[i * 4 + 0] = point.position.x/range;   // normalize the position because opengl accepts only between -1 and 1
+            vertices[i * 4 + 1] = point.position.y/range;
+            vertices[i * 4 + 2] = point.position.z/range;
+            vertices[i * 4 + 3] = point.probability;        // normalization happens in the shader
+            i++;
+        }
+    }
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glBufferData(GL_ARRAY_BUFFER, 4*numPoints*sizeof(float), vertices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(3 * sizeof(float))); // probability attribute
     glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+
+    delete[] vertices;
+    pointMasterVector.clear(); // free memory, we dont need the points anymore after uploading them to the GPU
+    pointMasterVector.shrink_to_fit();
 }
 
-void PointCloud::draw(glm::mat4 model) {
-    std::mt19937 rng(time(0));
-    std::uniform_real_distribution<float> dist(0.f, 1.f);
+void PointCloud::draw() {
+    //glBindVertexArray(VAO);               // setupBuffers binds the VAO, and we never unbind it, so this is not necessary
 
-    shaderProgram.use();
-    shaderProgram.setVec3("colorMin", COLOR_MIN);
-    shaderProgram.setVec3("colorMax", COLOR_MAX);
-    shaderProgram.setVec3("white", COLOR_WHITE);
-    glBindVertexArray(VAO);
-
-    shaderProgram.setFloat("maxProb", maxProb);
-    for (auto& pointSubvector : pointMasterVector) {
-        for (auto& point : pointSubvector) {
-            model = glm::mat4(1.0f);
-            model = glm::translate(model, point.position);
-            shaderProgram.setMat4("model", model);
-            shaderProgram.setFloat("prob", point.probability);
-
-            glDrawArrays(GL_POINTS, 0, 1);    
-        }
-    }
+    glDrawArrays(GL_POINTS, 0, numPoints);  // beautiful 
 }
 // --------------------------------------------------------------------------------
 
 
 // PHYSICS CALCULATIONS
 // --------------------------------------------------------------------------------
+
 // Bohr radius is set to 1 for simplicity and skipped in the calculations
 double normalizedRadialFunction(int n, int l, double x){
     switch (n){
@@ -152,7 +107,6 @@ std::complex<double> sphericalHarmonic(int l, int m, double theta, double phi){
 // --------------------------------------------------------------------------------
 
 PointCloud::PointCloud(Shader& shaderProgram, unsigned int numPoints, int n, int l, int m) : shaderProgram(shaderProgram), numPoints(numPoints), n(n), l(l), m(m) {
-    double range;
     switch (n){
         case 1:
             range = 5.0;
@@ -178,7 +132,10 @@ PointCloud::PointCloud(Shader& shaderProgram, unsigned int numPoints, int n, int
         t.join();
     }
 
-    setupBuffers();
+    //shaderProgram.use();                          // I'd prefer its turned on in main
+    shaderProgram.setVec3("colorMin", COLOR_MIN);
+    shaderProgram.setVec3("colorMax", COLOR_MAX);
+    shaderProgram.setVec3("white", COLOR_WHITE);
 }
 
 void PointCloud::generatePointVector(double range, unsigned int seed, unsigned int amount, int threadId){
@@ -265,6 +222,8 @@ void PointCloud::calculateAllProbabilities() {;
     }
 
     numPoints -= pointsRejected;
+
+    shaderProgram.setFloat("maxProb", maxProb);
 
     std::cout << "Starting points: " << startingPoints << " Points drawn: " << numPoints << " Rejection rate: " << 100.f * static_cast<float>(pointsRejected) / startingPoints << "%" << std::endl;
 }
