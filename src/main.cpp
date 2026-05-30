@@ -22,7 +22,8 @@ int main()
     int m = 0;
     int pointCount = 100000000; // number of points to generate
 
-    /*
+    /* 
+    // command line interface
     std::cout << "Enter quantum numbers n, l, m (separated by space, n = 1 to 4, l = 0 to (n-1), m = -l to l): ";
     std::cin >> n >> l >> m;
     if (n < 1 || n > 4 || l < 0 || l >= n || m < -l || m > l){
@@ -191,6 +192,7 @@ int main()
     }
  
     std::cout << "Window closed. Exiting..." << std::endl;
+    delete pointCloud;
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
