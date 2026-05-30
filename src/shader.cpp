@@ -1,6 +1,7 @@
 #include "shader.h"
 #include <glm/gtc/type_ptr.hpp>
 
+// credits: https://learnopengl.com/Getting-started/Shaders
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath)
 {

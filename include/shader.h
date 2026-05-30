@@ -8,7 +8,8 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-  
+
+// credits: https://learnopengl.com/Getting-started/Shaders
 
 class Shader
 {

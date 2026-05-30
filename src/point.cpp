@@ -9,7 +9,7 @@ GLuint PointCloud::VAO = 0;
 
 // i love how well it works
 void PointCloud::setupBuffers() {
-    // point
+    // all points along with their probabilities will be stored in this array
     float* vertices = new float[numPoints * 4];
 
     // i dont think we need multithreading here, there wont be many points left after the rejection sampling and it would be a nightmare to set up
@@ -41,7 +41,7 @@ void PointCloud::setupBuffers() {
 }
 
 void PointCloud::draw() {
-    //glBindVertexArray(VAO);               // setupBuffers binds the VAO, and we never unbind it, so this is not necessary
+    //glBindVertexArray(VAO);               // setupBuffers binds the VAO, and it is never unbound, so this is not necessary
 
     glDrawArrays(GL_POINTS, 0, numPoints);  // beautiful 
 }
@@ -55,17 +55,22 @@ void PointCloud::draw() {
 double normalizedRadialFunction(int n, int l, double x){
     switch (n){
         case 1:
-            if (l == 0) return 2*exp(-x);
+            if (l == 0) return 2.0 * exp(-x);
             break;
         case 2:
-            if (l == 0) return (1/sqrt(2))*(1-x/2)*exp(-x/2);
-            if (l == 1) return (1/sqrt(24))*x*exp(-x/2);
+            if (l == 0) return (1.0 / sqrt(2)) * (1-x/2.0)* exp(-x/2.0);
+            if (l == 1) return (1.0 / sqrt(24)) * x * exp(-x/2.0);
             break;
         case 3:
-            if (l == 0) return (2/sqrt(27))*(1 - 2*x/3 + 2*x*x/27)*exp(-x/3); 
-            if (l == 1) return (8/(27*sqrt(6)))*(1-x/6)*x*exp(-x/3);
-            if (l == 2) return (4/(81*sqrt(30)))*x*x*exp(-x/3);
+            if (l == 0) return (2.0 / sqrt(27)) * (1 - 2*x/3.0 + 2*x*x/27.0)*exp(-x/3.0); 
+            if (l == 1) return (8.0 / (27*sqrt(6))) * (1-x/6.0)*x*exp(-x/3.0);
+            if (l == 2) return (4.0 / (81*sqrt(30))) * x*x * exp(-x/3.0);
             break;
+        case 4:
+            if (l == 0) return (1.0 / 768.0f) * (192.0 - 144.0*x + 24.0*x*x - x*x*x) * exp(-x / 4.0);
+            if (l == 1) return (sqrt(15.0f) / 3840.0) * (80.0f*x - 20.0*x*x + x*x*x) * exp(-x / 4.0);
+            if (l == 2) return (sqrt(5.0f) / 3840.0) * (12.0f*x*x - x*x*x) * exp(-x / 4.0);
+            if (l == 3) return (sqrt(35.0f) / 26880.0) * (x*x*x) * exp(-x / 4.0);
     }
     std::cout << "Radial function parameter error" << std::endl;
     exit(1);
@@ -85,6 +90,12 @@ double associatedLegendrePolynomial(int l, int m, double x){
             if (m == 1) return -3*x*sqrt(1 - x*x);
             if (m == 2) return 3*(1 - x*x);
             break;
+        case 3:
+            if (m == 0) return 0.5 * (5*x*x*x - 3*x);
+            if (m == 1) return -1.5 * (5*x*x - 1)*sqrt(1 - x*x);
+            if (m == 2) return 15*x*(1 - x*x);
+            if (m == 3) return -15*pow(1 - x*x, 1.5);
+            break;
     }
     std::cout << "Legendre polynomial parameter error" << std::endl;
     exit(2);
@@ -100,7 +111,7 @@ int factorial (int n){
 
 std::complex<double> sphericalHarmonic(int l, int m, double theta, double phi){
     double realPart = ((-1)^m) * sqrt((2*l + 1)/(4*M_PI) * factorial(l-m) / factorial(l+m)) * associatedLegendrePolynomial(l,m,cos(theta));
-    std::complex<double> exponential =(sin(m*phi),cos(m*phi));
+    std::complex<double> exponential = (sin(m*phi),cos(m*phi));
 
     return realPart * exponential;
 }
@@ -116,6 +127,9 @@ PointCloud::PointCloud(Shader& shaderProgram, unsigned int numPoints, int n, int
             break;
         case 3:
             range = 25.0;
+            break;
+        case 4:
+            range = 35.0;
             break;
     }
 
@@ -151,21 +165,22 @@ void PointCloud::generatePointVector(double range, unsigned int seed, unsigned i
 }
 
 void PointCloud::calculateProbability(Point& point) {
+    // in OpenGL coordinates, Y is the vertical axis so we switch it with Z when calculating spherical coordinates
     double r = sqrt(point.position.x*point.position.x + point.position.z*point.position.z + point.position.y*point.position.y);
-    double theta = acos(point.position.y/r);
+    double theta = acos(point.position.y/r);  
     double phi = atan(point.position.z/point.position.x);
 
     std::complex<double> waveFunctionValue;
-    std::complex<double> waveFunctionValueConjugate;
-    if (m<0) m = -m;
+    if (m<0) m = -m;    // it looks the same for positive and negative m, the only difference is the sign of the imaginary part of the spherical harmonic, 
+                        // which we ignore when calculating probability, so we can just take the absolute value of m to simplify the calculations
+    
     waveFunctionValue = normalizedRadialFunction(n,l,r)*sphericalHarmonic(l,m,theta,phi);
-    //waveFunctionValueConjugate = conj(waveFunctionValue);
 
     point.probability = abs(waveFunctionValue)*abs(waveFunctionValue);
 }
 
 void PointCloud::probabilityWorker(int threadId, double& outLocalMax) {
-    double localMax = 0.0;
+    double localMax = 0.0;  // each thread calculates its maximum probability to avoid thread racing
     for (auto& point : pointMasterVector[threadId]) {
         calculateProbability(point);
         if (point.probability > localMax) {

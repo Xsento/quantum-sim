@@ -56,12 +56,24 @@ int main()
 
     // SIMULATION PARAMETERS
     // --------------------------------------------------------------------------------
-    const int n = 3;
-    const int l = 2;
-    const int m = 0;
+    int n,l,m; // quantum numbers
+    int pointCount = 100000000; // number of points to generate
+
+    std::cout << "Enter quantum numbers n, l, m (separated by space, n = 1 to 4, l = 0 to (n-1), m = -l to l): ";
+    std::cin >> n >> l >> m;
+    if (n < 1 || n > 4 || l < 0 || l >= n || m < -l || m > l){
+        std::cout << "Invalid quantum numbers. Exiting..." << std::endl;
+        return -1;
+    }
+    std::cout << "Enter number of points to generate (recommended: 100 million, -1 for default): ";
+    std::cin >> pointCount;
+    if (pointCount <= 0){
+        pointCount = 100000000;
+    }
+
     double start = glfwGetTime();
     std::cout << "Generating point array... " << std::endl;
-    PointCloud pointCloud(shaderProgram, 100000000, n, l, m);
+    PointCloud pointCloud(shaderProgram, pointCount, n, l, m);
     std::cout << "Point generation time: " << glfwGetTime()-start << "s" << std::endl;
 
     start = glfwGetTime();
@@ -70,12 +82,14 @@ int main()
     std::cout << "Probability calculation time: " << glfwGetTime()-start << "s" << std::endl;
     // --------------------------------------------------------------------------------
 
+    // set up OpenGL buffers for rendering points, also frees up a lot of RAM
     pointCloud.setupBuffers();
 
+    // fps calculation
     double lastTime = glfwGetTime();
     int frames = 0;
 
-    // create transformations
+    // OpenGL matrices
     glm::mat4 model         = glm::mat4(1.0f);
     glm::mat4 view          = glm::mat4(1.0f);
     glm::mat4 projection    = glm::mat4(1.0f);
@@ -175,8 +189,8 @@ void processInput(GLFWwindow *window)
     }
     if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS){
         camedaDistance -= CAMERA_ZOOM_SPEED*(glfwGetTime() - lastTime);
-        if (camedaDistance <= 10.f)
-            camedaDistance = 10.f;
+        if (camedaDistance <= 1.f)
+            camedaDistance = 1.f;
         //std::cout << "Camera distance: " << camedaDistance << std::endl;
     }
     if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS){
