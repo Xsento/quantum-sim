@@ -10,10 +10,10 @@ if(WIN32)
     set(PLATFORM_LIBS OpenGL::GL Threads::Threads winmm)
     add_subdirectory(external/glm)
 
-    file(GLOB_RECURSE SOURCES "src/*.cpp" "external/glad/*.c")
+    file(GLOB_RECURSE SOURCES "src/*.cpp" "external/glad/*.c" "external/imgui/*cpp")
     add_executable(quantum-sim ${SOURCES})
 
-    target_include_directories("${CMAKE_PROJECT_NAME}" PRIVATE "include/" "src/" "external/")
+    target_include_directories("${CMAKE_PROJECT_NAME}" PRIVATE "include/" "src/" "external/" "external/imgui/")
     target_link_libraries("${CMAKE_PROJECT_NAME}" glm "${GLFW_LIB}" ${PLATFORM_LIBS})
 
 elseif(UNIX)
@@ -21,10 +21,10 @@ elseif(UNIX)
     set(PLATFORM_LIBS OpenGL::GL Threads::Threads ${CMAKE_DL_LIBS})
     add_subdirectory(external/glm)
 
-    file(GLOB_RECURSE SOURCES "src/*.cpp" "external/glad/*.c")
+    file(GLOB_RECURSE SOURCES "src/*.cpp" "external/glad/*.c" "external/imgui/*cpp") 
     add_executable(quantum-sim ${SOURCES})
 
-    target_include_directories("${CMAKE_PROJECT_NAME}" PRIVATE "include/" "src/" "external/")
+    target_include_directories("${CMAKE_PROJECT_NAME}" PRIVATE "include/" "src/" "external/" "external/imgui/")
     target_link_libraries("${CMAKE_PROJECT_NAME}" glm glfw ${PLATFORM_LIBS})
 endif()
 

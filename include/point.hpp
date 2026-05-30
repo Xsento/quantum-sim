@@ -1,3 +1,5 @@
+#pragma once
+
 #include "main.hpp"
 #include "shader.h"
 

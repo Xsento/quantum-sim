@@ -41,8 +41,7 @@ void PointCloud::setupBuffers() {
 }
 
 void PointCloud::draw() {
-    //glBindVertexArray(VAO);               // setupBuffers binds the VAO, and it is never unbound, so this is not necessary
-
+    glBindVertexArray(VAO);               
     glDrawArrays(GL_POINTS, 0, numPoints);  // beautiful 
 }
 // --------------------------------------------------------------------------------

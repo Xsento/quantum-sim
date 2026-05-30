@@ -7,6 +7,7 @@ Simulation of quantum states of the electron in a hydrogen atom. Renders a cloud
 - Multithreaded generation and calculation of probability of points
 - Orbital camera with zoom
 - Multiplatform compilation and linking (Windows and Linux)
+- ImGUI based setup interface
 
 
 ## Physics Background
@@ -43,6 +44,7 @@ All images come from 100m starting points (~450k - ~900k points visible)
 - GLM  `included in the repository`
 - GLFW3 `pre installed for Windows`
 - GLAD `included in the repository`
+- ImGUI `included in the repository`
 
 ## GLFW3 Installation
 Debian/Ubuntu
