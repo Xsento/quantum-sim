@@ -12,6 +12,24 @@ const GLfloat CAMERA_ZOOM_SPEED = 300000.f;
 
 int main()
 {
+    // SIMULATION PARAMETERS
+    // --------------------------------------------------------------------------------
+    int n,l,m; // quantum numbers
+    int pointCount = 100000000; // number of points to generate
+
+    std::cout << "Enter quantum numbers n, l, m (separated by space, n = 1 to 4, l = 0 to (n-1), m = -l to l): ";
+    std::cin >> n >> l >> m;
+    if (n < 1 || n > 4 || l < 0 || l >= n || m < -l || m > l){
+        std::cout << "Invalid quantum numbers. Exiting..." << std::endl;
+        return -1;
+    }
+    std::cout << "Enter number of points to generate (recommended: 100 million, -1 for default): ";
+    std::cin >> pointCount;
+    if (pointCount <= 0){
+        pointCount = 100000000;
+    }
+    // --------------------------------------------------------------------------------
+
     // glfw: initialize and configure
     std::cout << "Initializing GLFW..." << std::endl;
     glfwInit();
@@ -21,7 +39,7 @@ int main()
     std::cout << "GLFW initialized properly" << std::endl;
 
     // glfw window creation
-    glfwWindowHint(GLFW_MAXIMIZED , GL_TRUE);   // doesnt work on linux for some reason
+    //glfwWindowHint(GLFW_MAXIMIZED , GL_TRUE);   // doesnt work on linux for some reason
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Please wait...", NULL, NULL);
     if (window == NULL)
     {
@@ -54,23 +72,8 @@ int main()
 
     shaderProgram.use();
 
-    // SIMULATION PARAMETERS
-    // --------------------------------------------------------------------------------
-    int n,l,m; // quantum numbers
-    int pointCount = 100000000; // number of points to generate
 
-    std::cout << "Enter quantum numbers n, l, m (separated by space, n = 1 to 4, l = 0 to (n-1), m = -l to l): ";
-    std::cin >> n >> l >> m;
-    if (n < 1 || n > 4 || l < 0 || l >= n || m < -l || m > l){
-        std::cout << "Invalid quantum numbers. Exiting..." << std::endl;
-        return -1;
-    }
-    std::cout << "Enter number of points to generate (recommended: 100 million, -1 for default): ";
-    std::cin >> pointCount;
-    if (pointCount <= 0){
-        pointCount = 100000000;
-    }
-
+    // point generation and calculations
     double start = glfwGetTime();
     std::cout << "Generating point array... " << std::endl;
     PointCloud pointCloud(shaderProgram, pointCount, n, l, m);
@@ -80,7 +83,7 @@ int main()
     std::cout << "Calculating probabilities... " << std::endl;
     pointCloud.calculateAllProbabilities();
     std::cout << "Probability calculation time: " << glfwGetTime()-start << "s" << std::endl;
-    // --------------------------------------------------------------------------------
+
 
     // set up OpenGL buffers for rendering points, also frees up a lot of RAM
     pointCloud.setupBuffers();
